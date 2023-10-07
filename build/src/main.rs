@@ -36,7 +36,6 @@ fn json_from_file(build_dir: &Path, name: &Path) -> json::JsonValue {
 fn main() {
 	let build_dir = build_dir();
 	let theme_dir = theme_dir();
-
 	let sizes = json_from_file(&build_dir, Path::new("sizes.json"));
 
 	for kvp in fs::read_dir("./assets/").unwrap() {
@@ -45,10 +44,13 @@ fn main() {
 			Ok(v) => v,
 			Err(e) => panic!("Failed to read icon file {} ({})", full_icon_path.display(), e),
 		};
-		match str::from_utf8(&svg_data) {
+		let svg_source = match str::from_utf8(&svg_data) {
 			Ok(v) => v,
 			Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
 		};
+		let opt = usvg::Options::default();
+		let rtree = usvg::Tree::from_data(svg_source.as_bytes(), &opt.to_ref()).unwrap();
+
 		for size_desc in sizes.members() {
 			let size = size_desc["size"].as_u32().unwrap();
 			let suffix = if size_desc["suffix"].is_string() {
@@ -58,10 +60,12 @@ fn main() {
 			};
 
 			let mut full_output_path = PathBuf::new();
-			full_output_path.push(format!("{}{}.png", full_icon_path.display(), suffix));
+			full_output_path.push(&theme_dir);
+			full_output_path.push(format!("{}{}.png", full_icon_path.file_name().unwrap().to_str().unwrap(), suffix));
 
 			println!("Building {} to {}", full_icon_path.display(), full_output_path.display());
-			let pixmap = tiny_skia::Pixmap::new(size, size).unwrap();
+			let mut pixmap = tiny_skia::Pixmap::new(size, size).unwrap();
+			resvg::render(&rtree, usvg::FitTo::Size(size, size), pixmap.as_mut()).unwrap();
 			pixmap.save_png(full_output_path).unwrap();
 		}
 	}
