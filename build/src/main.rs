@@ -37,8 +37,9 @@ fn main() {
 	let build_dir = build_dir();
 	let theme_dir = theme_dir();
 	let sizes = json_from_file(&build_dir, Path::new("sizes.json"));
+	let icon_assets = "../vscode-material-icon-theme/icons/";
 
-	for kvp in fs::read_dir("./assets/").unwrap() {
+	for kvp in fs::read_dir(icon_assets).unwrap() {
 		let full_icon_path = kvp.unwrap().path();
 		let svg_data = match std::fs::read(&full_icon_path) {
 			Ok(v) => v,
