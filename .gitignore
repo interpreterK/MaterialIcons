@@ -6,7 +6,6 @@
 *.exe
 *.o
 *.so
-*.lockb
 
 # Packages #
 ############
@@ -40,3 +39,6 @@ Thumbs.db
 # Node installed packages #
 ###########################
 node_modules
+
+*.lockb
+*/src/bin
